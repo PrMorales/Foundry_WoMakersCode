@@ -1,11 +1,12 @@
 import streamlit as st
 import os
+import json
 from azure.ai.inference import ChatCompletionsClient
-from azure.ai.inference.models import SystemMessage, UserMessage, AssistantMessage
+from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
 
 # --- 1. CONFIGURAÇÃO VISUAL ---
-st.set_page_config(page_title="NeuroDiv Chat", page_icon="🎯", layout="wide")
+st.set_page_config(page_title="NeuroDiv JSON", page_icon="⚙️", layout="wide")
 
 st.markdown("""
 <style>
@@ -13,53 +14,52 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Montserrat', sans-serif; }
     .stApp { background-color: #2E3035; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown { color: #E0E0E0 !important; }
-    .stChatMessage { background-color: #1F2126; border: 1px solid #444; }
-    div.stButton > button { background-color: #0078D4 !important; color: white !important; border: none; font-weight: 600; }
-    .source-footer { font-size: 11px; color: #888; margin-top: 10px; border-top: 1px solid #444; padding-top: 5px; }
+    div.stButton > button { background-color: #0078D4 !important; color: white !important; border: none; font-weight: bold; }
+    
+    /* Caixas de Resposta */
+    .item-box {
+        background-color: #1F2126; 
+        padding: 10px 15px; 
+        border-radius: 8px; 
+        border-left: 4px solid #00D47E; 
+        margin-bottom: 8px;
+        font-size: 16px;
+    }
+    .source-tag { font-size: 11px; color: #888; margin-top: 10px; text-align: right; }
 </style>
 """, unsafe_allow_html=True)
 
 # --- 2. CARREGAR DOCUMENTOS ---
 @st.cache_resource
-def carregar_documentos():
-    texto_total = ""
-    pasta = "docs"
-    if not os.path.exists(pasta): return ""
-    
-    # Lê arquivos .txt
-    for arq in os.listdir(pasta):
-        if arq.endswith(".txt"):
-            try:
-                caminho = os.path.join(pasta, arq)
-                with open(caminho, "r", encoding="utf-8", errors="ignore") as f:
-                    # Adiciona delimitadores claros para ajudar a IA
-                    texto_total += f"\n--- INÍCIO DO ARQUIVO: {arq} ---\n{f.read()}\n--- FIM DO ARQUIVO ---\n"
-            except: pass
-    return texto_total
+def carregar_base():
+    texto = ""
+    if os.path.exists("docs"):
+        for f in os.listdir("docs"):
+            if f.endswith(".txt"):
+                try:
+                    with open(os.path.join("docs", f), "r", encoding="utf-8") as file:
+                        texto += f"\n--- ARQUIVO: {f} ---\n{file.read()}\n"
+                except: pass
+    return texto
 
-base_conhecimento = carregar_documentos()
+base_conhecimento = carregar_base()
 
-# --- 3. INTERFACE ---
+# --- 3. BARRA LATERAL ---
 with st.sidebar:
-    st.title("📂 Status do Sistema")
+    st.title("⚙️ Sistema")
     if base_conhecimento:
-        st.success(f"Base Carregada ({len(base_conhecimento)} caracteres)")
-        # Lista arquivos para conferência
-        if os.path.exists("docs"):
-            for f in os.listdir("docs"):
-                if f.endswith(".txt"): st.caption(f"📄 {f}")
+        st.success("Arquivos Carregados")
+        with st.expander("Ver conteúdo lido (Debug)"):
+            st.text(base_conhecimento)
     else:
-        st.error("⚠️ Pasta 'docs' vazia!")
-    
-    if st.button("🧹 Limpar Chat"):
+        st.error("❌ ERRO: Pasta 'docs' vazia.")
+        
+    if st.button("Limpar Chat"):
         st.session_state.messages = []
         st.rerun()
 
-st.title("💬 NEUROdiv")
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-    st.session_state.messages.append({"role": "assistant", "content": "Qual o problema do aluno?"})
+# --- 4. CHATBOT ---
+st.title("🛡️ Protocolos NeuroDiv")
 
 # Conexão
 try:
@@ -69,16 +69,23 @@ try:
         api_version="2024-05-01-preview"
     )
 except:
-    st.error("Erro de Chaves.")
+    st.error("Configure as chaves.")
     st.stop()
 
-# Histórico
-for msg in st.session_state.messages:
-    role_style = "background-color: #0078D4;" if msg["role"] == "user" else "background-color: #1F2126;"
-    st.markdown(f"<div style='{role_style}; padding: 15px; border-radius: 10px; margin-bottom: 10px;'>{msg['content']}</div>", unsafe_allow_html=True)
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+    st.session_state.messages.append({"role": "assistant", "content": "Qual o problema escolar?"})
 
-# --- 4. LÓGICA DE ENVIO ---
-if prompt := st.chat_input("Ex: Adaptação para TDAH"):
+# Exibe chat
+for msg in st.session_state.messages:
+    if msg["role"] == "user":
+        st.chat_message("user").write(msg["content"])
+    else:
+        # 
+        st.chat_message("assistant").markdown(msg["content"], unsafe_allow_html=True)
+
+# --- 5. LÓGICA: JSON MODE ---
+if prompt := st.chat_input("Ex: Adaptação prova TDAH"):
     
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.rerun()
@@ -86,58 +93,73 @@ if prompt := st.chat_input("Ex: Adaptação para TDAH"):
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     
     if not base_conhecimento:
-        st.error("Sem documentos para ler.")
+        st.error("Sem documentos.")
         st.stop()
 
-    with st.spinner("Analisando..."):
+    with st.spinner("Extraindo dados estruturados..."):
         try:
             prompt_usuario = st.session_state.messages[-1]["content"]
             
-            # --- CORREÇÃO NO PROMPT ---
-            # Adicionamos lógica de EXCLUSÃO MÚTUA (Ou um Ou outro)
+            # PROMPT QUE OBRIGA JSON
+            # Isso impede a IA de conversar. Ela só pode gerar dados.
             system_instruction = f"""
-            VOCÊ É UM ROBÔ EXTRATOR DE DADOS.
+            VOCÊ É UMA API DE EXTRAÇÃO DE DADOS.
             
-            === BANCO DE DADOS ===
+            CONTEXTO (DOCUMENTOS):
             {base_conhecimento}
-            ======================
             
             SUA TAREFA:
-            Verificar se existe resposta para "{prompt_usuario}" no banco de dados acima.
+            Buscar a solução para "{prompt_usuario}" nos documentos e retornar um JSON.
             
-            LÓGICA DE DECISÃO (SIGA ESTRITAMENTE):
-            CASO 1: A informação EXISTE no texto.
-               -> AÇÃO: Copie a lista de estratégias exatamente como está no texto.
-               -> FINALIZAÇÃO: Pare de escrever imediatamente após o último item. NÃO escreva avisos de erro.
+            FORMATO JSON OBRIGATÓRIO:
+            {{
+                "encontrou": true,
+                "lista_acoes": [
+                    "Ação 1 (copiada do texto)",
+                    "Ação 2 (copiada do texto)",
+                    "Ação 3 (copiada do texto)"
+                ]
+            }}
             
-            CASO 2: A informação NÃO EXISTE no texto.
-               -> AÇÃO: Escreva APENAS: "Informação não consta nos protocolos."
-               -> FINALIZAÇÃO: Pare.
-            
-            REGRAS DE FORMATAÇÃO:
-            - Use apenas lista com marcadores (•).
-            - Sem introduções ("Aqui está", "Olá").
-            - Sem conclusões.
+            REGRAS:
+            1. Se não achar no texto, retorne {{"encontrou": false, "lista_acoes": []}}.
+            2. NÃO invente. Copie do texto.
+            3. Responda APENAS o JSON. Nada de "Aqui está".
             """
             
+            # Movemos tudo para a mensagem do usuário para dar mais peso (Atenção)
             msgs = [
-                SystemMessage(content=system_instruction),
-                UserMessage(content=prompt_usuario)
+                SystemMessage(content="Você é um gerador de JSON."),
+                UserMessage(content=system_instruction)
             ]
             
             response = client.complete(
-                messages=msgs, 
-                model="Phi-4-mini-instruct", # Confirme se o nome é esse ou "Phi-4"
-                temperature=0.1, 
-                max_tokens=400
+                messages=msgs,
+                model="Phi-4", # Ou o nome do seu modelo
+                temperature=0.0,
+                max_tokens=500,
+                response_format={"type": "json_object"} # Força modo JSON se suportado
             )
             
-            resposta = response.choices[0].message.content
+            resposta_json = response.choices[0].message.content
             
-            # Rodapé
-            resposta_final = f"{resposta}\n\n<div class='source-footer'>Fonte: Documentos Internos</div>"
-            
-            st.session_state.messages.append({"role": "assistant", "content": resposta_final})
+            # PROCESSAMENTO DO PYTHON 
+            try:
+                dados = json.loads(resposta_json)
+                
+                if dados.get("encontrou") and dados.get("lista_acoes"):
+                    html_final = ""
+                    for acao in dados["lista_acoes"]:
+                        html_final += f"<div class='item-box'>✅ {acao}</div>"
+                    html_final += "<div class='source-tag'>Fonte: Documentos Internos</div>"
+                else:
+                    html_final = "<div class='item-box'>⚠️ Informação não consta nos documentos carregados.</div>"
+                    
+            except json.JSONDecodeError:
+                # Fallback caso a IA falhe no JSON (raro com temperatura 0)
+                html_final = f"Erro de formatação da IA. Resposta bruta:\n{resposta_json}"
+
+            st.session_state.messages.append({"role": "assistant", "content": html_final})
             st.rerun()
             
         except Exception as e:
