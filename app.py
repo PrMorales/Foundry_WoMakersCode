@@ -1,12 +1,13 @@
 import streamlit as st
 import os
-import json
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
 
-# --- 1. CONFIGURAÇÃO VISUAL ---
-st.set_page_config(page_title="NeuroDiv JSON", page_icon="⚙️", layout="wide")
+# ==========================================
+# 1. CONFIGURAÇÃO VISUAL
+# ==========================================
+st.set_page_config(page_title="NeuroDiv Phi-4", page_icon="🧠", layout="wide")
 
 st.markdown("""
 <style>
@@ -14,52 +15,65 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Montserrat', sans-serif; }
     .stApp { background-color: #2E3035; }
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown { color: #E0E0E0 !important; }
-    div.stButton > button { background-color: #0078D4 !important; color: white !important; border: none; font-weight: bold; }
-    
-    /* Caixas de Resposta */
-    .item-box {
-        background-color: #1F2126; 
-        padding: 10px 15px; 
-        border-radius: 8px; 
-        border-left: 4px solid #00D47E; 
-        margin-bottom: 8px;
-        font-size: 16px;
-    }
-    .source-tag { font-size: 11px; color: #888; margin-top: 10px; text-align: right; }
+    .stChatMessage { background-color: #1F2126; border: 1px solid #444; border-radius: 10px; }
+    .stChatMessage[data-testid="stChatMessageAvatarUser"] { background-color: #0078D4; }
+    div.stButton > button { background-color: #0078D4 !important; color: white !important; border: none; font-weight: 600; }
+    .source-box { font-size: 11px; color: #00D47E; margin-top: 8px; border-top: 1px solid #444; padding-top: 5px; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. CARREGAR DOCUMENTOS ---
+# ==========================================
+# 2. CARREGAR DOCUMENTOS (RAG)
+# ==========================================
 @st.cache_resource
-def carregar_base():
-    texto = ""
-    if os.path.exists("docs"):
-        for f in os.listdir("docs"):
-            if f.endswith(".txt"):
-                try:
-                    with open(os.path.join("docs", f), "r", encoding="utf-8") as file:
-                        texto += f"\n--- ARQUIVO: {f} ---\n{file.read()}\n"
-                except: pass
-    return texto
+def carregar_documentos():
+    texto_total = ""
+    pasta = "docs"
+    
+    if not os.path.exists(pasta): return ""
+    
+    for arq in os.listdir(pasta):
+        if arq.endswith(".txt"):
+            try:
+                caminho = os.path.join(pasta, arq)
+                with open(caminho, "r", encoding="utf-8") as f:
+                    # Adiciona tags para o modelo saber onde começa e termina cada arquivo
+                    texto_total += f"\n=== ARQUIVO: {arq} ===\n{f.read()}\n"
+            except: pass
+    return texto_total
 
-base_conhecimento = carregar_base()
+base_conhecimento = carregar_documentos()
 
-# --- 3. BARRA LATERAL ---
+# ==========================================
+# 3. BARRA LATERAL
+# ==========================================
 with st.sidebar:
-    st.title("⚙️ Sistema")
+    st.title("📂 Base de Dados (Phi-4)")
     if base_conhecimento:
-        st.success("Arquivos Carregados")
-        with st.expander("Ver conteúdo lido (Debug)"):
-            st.text(base_conhecimento)
+        st.success("Docs Carregados")
+        with st.expander("Ver arquivos lidos"):
+            if os.path.exists("docs"):
+                for f in os.listdir("docs"):
+                    if f.endswith(".txt"): st.write(f"📄 {f}")
     else:
-        st.error("❌ ERRO: Pasta 'docs' vazia.")
-        
-    if st.button("Limpar Chat"):
+        st.error("⚠️ Pasta 'docs' vazia!")
+    
+    if st.button("🧹 Limpar Chat"):
         st.session_state.messages = []
         st.rerun()
 
-# --- 4. CHATBOT ---
-st.title("🛡️ Protocolos NeuroDiv")
+# ==========================================
+# 4. CHATBOT
+# ==========================================
+st.title("🛡️ NEUROdiv ")
+st.caption(" Auxiliar de Inclusão e Acessibilidade na Escola.")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+    st.session_state.messages.append({
+        "role": "assistant", 
+        "content": "Em que posso ajudar?"
+    })
 
 # Conexão
 try:
@@ -68,99 +82,74 @@ try:
         credential=AzureKeyCredential(st.secrets["AZURE_KEY"]),
         api_version="2024-05-01-preview"
     )
+    # ATENÇÃO AQUI: Atualizado para o modelo correto
+    MODEL_NAME = "Phi-4" 
 except:
-    st.error("Configure as chaves.")
+    st.error("Erro nas chaves.")
     st.stop()
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-    st.session_state.messages.append({"role": "assistant", "content": "Qual o problema escolar?"})
-
-# Exibe chat
+# Exibe histórico
 for msg in st.session_state.messages:
-    if msg["role"] == "user":
-        st.chat_message("user").write(msg["content"])
-    else:
-        # 
-        st.chat_message("assistant").markdown(msg["content"], unsafe_allow_html=True)
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"], unsafe_allow_html=True)
 
-# --- 5. LÓGICA: JSON MODE ---
-if prompt := st.chat_input("Ex: Adaptação prova TDAH"):
+# ==========================================
+# 5. LÓGICA DE INTELIGÊNCIA
+# ==========================================
+if prompt := st.chat_input("Ex: Como adaptar prova para TDAH?"):
     
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.rerun()
 
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     
+    # Trava de segurança
     if not base_conhecimento:
-        st.error("Sem documentos.")
-        st.stop()
+        st.session_state.messages.append({"role": "assistant", "content": "🚫 ERRO: Sem documentos para ler."})
+        st.rerun()
 
-    with st.spinner("Extraindo dados estruturados..."):
+    with st.spinner("Processando com Phi-4..."):
         try:
             prompt_usuario = st.session_state.messages[-1]["content"]
             
-            # PROMPT QUE OBRIGA JSON
-            # Isso impede a IA de conversar. Ela só pode gerar dados.
+            # PROMPT OTIMIZADO PARA PHI-4 (Ele entende instruções complexas melhor)
             system_instruction = f"""
-            VOCÊ É UMA API DE EXTRAÇÃO DE DADOS.
+            VOCÊ É UM ANALISTA TÉCNICO DE DOCUMENTOS ESCOLARES.
             
-            CONTEXTO (DOCUMENTOS):
+            === SUA BASE DE DADOS (LEIA TUDO) ===
             {base_conhecimento}
+            =====================================
             
             SUA TAREFA:
-            Buscar a solução para "{prompt_usuario}" nos documentos e retornar um JSON.
+            Responder à pergunta "{prompt_usuario}" usando ESTRITAMENTE o conteúdo da Base de Dados acima.
             
-            FORMATO JSON OBRIGATÓRIO:
-            {{
-                "encontrou": true,
-                "lista_acoes": [
-                    "Ação 1 (copiada do texto)",
-                    "Ação 2 (copiada do texto)",
-                    "Ação 3 (copiada do texto)"
-                ]
-            }}
-            
-            REGRAS:
-            1. Se não achar no texto, retorne {{"encontrou": false, "lista_acoes": []}}.
-            2. NÃO invente. Copie do texto.
-            3. Responda APENAS o JSON. Nada de "Aqui está".
+            REGRAS RÍGIDAS:
+            1. Identifique o arquivo correto (ex: se a pergunta é TDAH, use o texto do TDAH).
+            2. COPIE as estratégias do texto. Não parafraseie se não precisar.
+            3. Formate como lista (bullets).
+            4. NÃO invente. Se não estiver no texto, diga: "Informação não consta nos protocolos."
+            5. Seja direto. Sem "Olá" ou "Espero ter ajudado".
             """
             
-            # Movemos tudo para a mensagem do usuário para dar mais peso (Atenção)
             msgs = [
-                SystemMessage(content="Você é um gerador de JSON."),
-                UserMessage(content=system_instruction)
+                SystemMessage(content=system_instruction),
+                UserMessage(content=prompt_usuario)
             ]
             
             response = client.complete(
-                messages=msgs,
-                model="Phi-4", # Ou o nome do seu modelo
-                temperature=0.0,
-                max_tokens=500,
-                response_format={"type": "json_object"} # Força modo JSON se suportado
+                messages=msgs, 
+                model=MODEL_NAME, # Usando a variável atualizada
+                temperature=0.1,  
+                max_tokens=500    
             )
             
-            resposta_json = response.choices[0].message.content
+            resposta = response.choices[0].message.content
             
-            # PROCESSAMENTO DO PYTHON 
-            try:
-                dados = json.loads(resposta_json)
-                
-                if dados.get("encontrou") and dados.get("lista_acoes"):
-                    html_final = ""
-                    for acao in dados["lista_acoes"]:
-                        html_final += f"<div class='item-box'>✅ {acao}</div>"
-                    html_final += "<div class='source-tag'>Fonte: Documentos Internos</div>"
-                else:
-                    html_final = "<div class='item-box'>⚠️ Informação não consta nos documentos carregados.</div>"
-                    
-            except json.JSONDecodeError:
-                # Fallback caso a IA falhe no JSON (raro com temperatura 0)
-                html_final = f"Erro de formatação da IA. Resposta bruta:\n{resposta_json}"
-
-            st.session_state.messages.append({"role": "assistant", "content": html_final})
+            # Adiciona rodapé
+            resposta_final = f"{resposta}\n\n<div class='source-box'>Gerado por Phi-4 | Fonte: Docs Internos</div>"
+            
+            st.session_state.messages.append({"role": "assistant", "content": resposta_final})
             st.rerun()
             
         except Exception as e:
-            st.error(f"Erro: {e}")
+            st.error(f"Erro na conexão: {e}")
