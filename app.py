@@ -127,7 +127,7 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
             1. Identifique o arquivo correto (ex: se a pergunta é TDAH, use o texto do TDAH).
             2. COPIE as estratégias do texto. Não parafraseie se não precisar.
             3. Formate como lista (bullets).
-            4. NÃO invente. Se não estiver no texto, diga: "Informação não consta nos protocolos."
+            4. NÃO invente.
             5. Seja direto. Sem "Olá" ou "Espero ter ajudado".
             """
             
@@ -153,3 +153,4 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
             
         except Exception as e:
             st.error(f"Erro na conexão: {e}")
+
