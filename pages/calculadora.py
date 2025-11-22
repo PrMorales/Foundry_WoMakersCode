@@ -57,13 +57,6 @@ except:
 
 # --- INTERFACE DE CÁLCULO ---
 
-# Botões de Exemplo (Ajudam quem tem dificuldade de digitar)
-col1, col2, col3 = st.columns(3)
-exemplo = ""
-if col1.button("639 ÷ 3"): exemplo = "639 dividido por 3"
-if col2.button("480 ÷ 4"): exemplo = "480 dividido por 4"
-if col3.button("125 + 48"): exemplo = "125 mais 48"
-
 # Campo de Entrada
 conta_usuario = st.text_input("Que conta vamos fazer?", value=exemplo, placeholder="Ex: 248 dividido por 2")
 
