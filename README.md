@@ -40,12 +40,15 @@ Detalhes da implantação do modelo **Phi-4** em modo Serverless (MaaS), comprov
 Teste realizado no Playground do Foundry para validar se o modelo obedecia às regras de formatação e conteúdo técnico antes de ir para o código.
 ![Teste no Chat](prints/print_chat.png)
 
-### 3. Monitoramento de Consumo
+### 3. Validação de Engenharia de Prompt Calculadora
+![Teste Calculadora](prints/print_calculadora.png)
+
+### 4. Monitoramento de Consumo
 Métricas de uso (chamadas de API e Tokens) comprovando que a aplicação Python está consumindo o modelo hospedado no Azure.
 ![Gráfico de Uso](prints/print_uso.png)
 
-### 4. Falha ao buscar locais para implantação
-
+### 5. Falha ao buscar locais para implantação
+![Erro Local de Implantação](prints/print_erro.png)
 
 ---
 
