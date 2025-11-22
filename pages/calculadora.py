@@ -98,7 +98,7 @@ if st.button("Calcular Agora"):
                 ],
                 model=model_name,
                 temperature=0.1, # Baixa criatividade para não errar conta
-                max_tokens=500
+                max_tokens=1000
             )
 
             # Exibe o resultado formatado
