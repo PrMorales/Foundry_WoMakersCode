@@ -1,7 +1,7 @@
-# 🧠 NeuroDiv - Assistente Pedagógico Inclusivo (Azure AI)
+# 🧠 NeuroDiv - Plataforma de Soluções para Educação Inclusiva (Azure AI)
 
 ## 🎯 Descrição e Objetivo
-O **NeuroDiv** é um agente de Inteligência Artificial desenvolvido para apoiar professores na criação de adaptações curriculares para alunos neurodivergentes (TEA, TDAH, Dislexia, etc.).
+O **NeuroDiv** é um Hub de Inteligência Artificial desenvolvido para apoiar professores na criação de adaptações curriculares para alunos neurodivergentes (TEA, TDAH, Dislexia, etc.).
 
 O objetivo é democratizar o acesso a protocolos de inclusão, permitindo que educadores obtenham estratégias técnicas e personalizadas em segundos.
 Além de construir ferramentas com IA para auxiliar os alunos na adaptação.
