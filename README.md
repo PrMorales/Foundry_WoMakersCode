@@ -4,6 +4,8 @@ Este projeto é uma ferramenta de Inteligência Artificial desenvolvida para aux
 
 O sistema utiliza o modelo **Phi-4** (via Microsoft Azure AI Foundry) para analisar queixas escolares e sugerir intervenções técnicas baseadas em documentos oficiais.
 
+Deploy -> https://neurodiv.streamlit.app/
+
 ---
 
 ## 🚧 O Desafio Técnico: Azure for Students
