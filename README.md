@@ -108,7 +108,7 @@ Métricas de uso (chamadas de API e Tokens) comprovando que a aplicação Python
 
 ### 🛠️ Tecnologias Utilizadas
 * **[Microsoft Azure AI Foundry](https://ai.azure.com/):** Plataforma utilizada para orquestração e acesso ao modelo de IA.
-* **[Modelo Phi-4 (Microsoft)](https://azure.microsoft.com/en-us/blog/introducing-phi-4/):** utilizado para inferência, escolhido por sua eficiência e capacidade de raciocínio em contextos limitados.
+* **[Modelo Phi-4 (Microsoft)]([https://azure.microsoft.com/en-us/blog/introducing-phi-4/](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-phi-4-microsoft%E2%80%99s-newest-small-language-model-specializing-in-comple/4357090)**
 * **[Streamlit](https://streamlit.io/):** Framework utilizado para o desenvolvimento da interface web interativa.
 
 ### 📖 Referências Pedagógicas (Base de Conhecimento)
