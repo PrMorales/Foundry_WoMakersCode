@@ -40,30 +40,24 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- TÍTULO ---
-st.title("➗ Calculadora Neurodiv")
-st.markdown("Resolvemos a conta passo a passo.")
+st.title("➗ Calculadora Visual")
+st.markdown("Resolvemos a conta passo a passo, desmontando os números.")
 
 # --- CONFIGURAÇÃO DAS CHAVES ---
 try:
     endpoint = st.secrets["AZURE_ENDPOINT"]
     key = st.secrets["AZURE_KEY"]
-    model_name = "Phi-4" # Ou o nome do seu deploy
+    model_name = "Phi-4" 
 except:
-    with st.sidebar:
-        st.warning("Chaves não encontradas.")
-        endpoint = st.text_input("Endpoint Azure:")
-        key = st.text_input("Chave API:", type="password")
-        model_name = "Phi-4"
+    st.error("Erro nas chaves de API.")
+    st.stop()
 
 # --- INTERFACE DE CÁLCULO ---
 
 # Campo de Entrada
-conta_usuario = st.text_input("Que conta vamos fazer?", value=exemplo, placeholder="Ex: 248 dividido por 2")
+conta_usuario = st.text_input("Que conta vamos fazer?", placeholder="Ex: 248 dividido por 2")
 
 if st.button("Calcular Agora"):
-    if not key or not endpoint:
-        st.error("Preciso das chaves de acesso para calcular.")
-        st.stop()
         
     if not conta_usuario:
         st.warning("Digite uma conta primeiro.")
