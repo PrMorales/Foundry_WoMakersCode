@@ -104,4 +104,19 @@ Métricas de uso (chamadas de API e Tokens) comprovando que a aplicação Python
 
 ---
 
+## 🔗 Referências e Documentação
+
+### 🛠️ Tecnologias Utilizadas
+* **[Microsoft Azure AI Foundry](https://ai.azure.com/):** Plataforma utilizada para orquestração e acesso ao modelo de IA.
+* **[Modelo Phi-4 (Microsoft)](https://azure.microsoft.com/en-us/blog/introducing-phi-4/):** utilizado para inferência, escolhido por sua eficiência e capacidade de raciocínio em contextos limitados.
+* **[Streamlit](https://streamlit.io/):** Framework utilizado para o desenvolvimento da interface web interativa.
+
+### 📖 Referências Pedagógicas (Base de Conhecimento)
+O conteúdo técnico dos protocolos foi baseado em diretrizes de instituições renomadas:
+* **[Associação Brasileira do Déficit de Atenção (ABDA)](https://tdah.org.br/)
+* **[Autismo e Realidade](https://autismoerealidade.org.br/)
+* **[Associação Brasileira de Dislexia (ABD)](https://www.dislexia.org.br/)
+* **[Política Nacional de Educação Especial (MEC)](http://portal.mec.gov.br/seesp/arquivos/pdf/politica.pdf)
+
+---
 *Projeto desenvolvido como parte da atividade prática de Azure AI / WoMakersCode.*
