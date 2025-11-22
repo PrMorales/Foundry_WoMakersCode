@@ -8,6 +8,16 @@ Além de construir ferramentas com IA para auxiliar os alunos na adaptação.
 
 ---
 
+## 🛠️ Tecnologias Utilizadas
+
+* **Modelo de IA:** Microsoft Phi-4 (via Azure AI Foundry).
+* **Linguagem:** Python 3.10+.
+* **Frontend:** Streamlit.
+* **SDK:** `azure-ai-inference` (Conexão segura com o modelo).
+* **Técnica de IA:** RAG (Retrieval-Augmented Generation) via injeção de prompt.
+
+---
+
 ## ⚠️ Nota sobre a Implementação (Azure for Students)
 
 Este projeto foi desenvolvido utilizando a assinatura **Azure for Students**. Devido às limitações de cota e restrições regionais desta assinatura
@@ -58,16 +68,6 @@ Métricas de uso (chamadas de API e Tokens) comprovando que a aplicação Python
 * **Engenharia de Prompt:** O sistema utiliza instruções rigorosas ("System Prompt") para garantir que a IA seja técnica, direta e não dê conselhos genéricos.
 * **Interface Amigável:** Desenvolvida em Streamlit com design focado na usabilidade do professor.
 * **Calculadora para alunos com Dislexia:** Desenvolve calculos passo a passo para facilitar o aprendizado, usando métodos como a divisão por decomposição, por exemplo.
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-* **Modelo de IA:** Microsoft Phi-4 (via Azure AI Foundry).
-* **Linguagem:** Python 3.10+.
-* **Frontend:** Streamlit.
-* **SDK:** `azure-ai-inference` (Conexão segura com o modelo).
-* **Técnica de IA:** RAG (Retrieval-Augmented Generation) via injeção de prompt.
 
 ---
 
